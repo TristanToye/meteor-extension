@@ -1,5 +1,5 @@
 # meteor-extension
-This is Biolerplate for a Meteor.js Chrome Extension
+This is Boilerplate for a Meteor.js Chrome Extension
 
 It demos both using DDP to pull a collection into the extension & an iframe popup to add a UI to the browser.
 
