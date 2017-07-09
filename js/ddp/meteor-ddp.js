@@ -1,7 +1,7 @@
 /* MeteorDdp - a client for DDP version pre1 */
 
 var MeteorDdp = function(wsUri) {
-  this.VERSIONS = ["pre1"];
+  this.VERSIONS = ["1", "pre2", "pre1"];
 
   this.wsUri = wsUri;
   this.sock;
@@ -72,9 +72,20 @@ MeteorDdp.prototype.connect = function() {
       case 'movedBefore':
         // TODO
         break;
+      case 'ping':
+        self._resolvePing(data);
+        break;
     }
   };
   return conn.promise();
+};
+
+MeteorDdp.prototype._resolvePing = function(data) {
+    var pong = {msg: 'pong'};
+    if (data.hasOwnProperty('id')) { 
+        pong.id = data.id;
+    }
+    this.send(pong);
 };
 
 MeteorDdp.prototype._resolveNoSub = function(data) {
@@ -106,7 +117,15 @@ MeteorDdp.prototype._changeDoc = function(msg) {
   var id = msg.id;
   var fields = msg.fields;
   var cleared = msg.cleared;
+
+  if (!this.collections[collName]) {
+      this.collections[collName] = {};
+  }
   var coll = this.collections[collName];
+
+  if (!coll[id]) {
+      coll[id] = fields;
+  }
 
   if (fields) {
     for (var k in fields) {
@@ -141,6 +160,13 @@ MeteorDdp.prototype._addDoc = function(msg) {
 MeteorDdp.prototype._removeDoc = function(msg) {
   var collName = msg.collection;
   var id = msg.id;
+
+  if (!this.collections[collName]) {
+      this.collections[collName] = {};
+  }
+  if (!this.collections[collName][id]) {
+      this.collections[collName][id] = {};
+  }
   var doc = this.collections[collName][id];
 
   var docCopy = JSON.parse(JSON.stringify(doc));
